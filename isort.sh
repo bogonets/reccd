@@ -60,13 +60,14 @@ while [[ -n $1 ]]; do
     esac
 done
 
-ISORT_CHECK_ARGS=("--settings-path" "$ROOT_DIR/isort.cfg")
+ARGS=("--settings-path=$ROOT_DIR/isort.cfg")
 if [[ $FIX_FLAG -eq 0 ]]; then
-    ISORT_CHECK_ARGS+=("--check" "--diff" "--color")
+    ARGS+=("--check" "--diff" "--color")
 fi
 
-print_message "isort ${ISORT_CHECK_ARGS[*]}"
-"$ROOT_DIR/python" -m isort "${ISORT_CHECK_ARGS[@]}" \
+print_message "isort ${ARGS[*]}"
+
+"$ROOT_DIR/python" -m isort "${ARGS[@]}" \
     "$ROOT_DIR/setup.py" \
     "$ROOT_DIR/reccd/" \
     "$ROOT_DIR/test/"
