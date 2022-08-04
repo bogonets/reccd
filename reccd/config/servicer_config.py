@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from argparse import REMAINDER, ArgumentParser, Namespace, RawDescriptionHelpFormatter
-from typing import List, Optional
+from typing import List, Optional, Tuple
 
 from reccd.argparse.namespace_utils import right_join
 from reccd.argparse.typing_namespace import typing_namespace
@@ -24,6 +24,10 @@ class ServicerConfig(Namespace):
     opts: Optional[List[str]]
 
 
+class ExtraFlags:
+    show_modules: bool
+
+
 def parse_servicer_arguments(
     args: Optional[List[str]] = None,
     namespace: Optional[Namespace] = None,
@@ -33,6 +37,13 @@ def parse_servicer_arguments(
         description=SERVICER_DESCRIPTION,
         epilog=SERVICER_EPILOG,
         formatter_class=RawDescriptionHelpFormatter,
+    )
+    parser.add_argument(
+        "--list",
+        "-l",
+        action="store_true",
+        default=False,
+        help="List of modules",
     )
     parser.add_argument(
         "--config",
@@ -70,11 +81,16 @@ def parse_servicer_arguments(
     return parser.parse_known_args(args, namespace)[0]
 
 
-def get_default_servicer_config(cmdline: Optional[List[str]] = None) -> ServicerConfig:
+def get_default_servicer_config(
+    cmdline: Optional[List[str]] = None,
+) -> Tuple[ServicerConfig, ExtraFlags]:
     file = get_file_envs()
     envs = get_envs()
     args = parse_servicer_arguments(cmdline)
     cfgs = get_cfg_section_by_path(args.config) if args.config else dict()
+
+    extra = ExtraFlags()
+    extra.show_modules = args.list
 
     if args.module == SKIP_MODULE:
         args.module = None
@@ -85,9 +101,11 @@ def get_default_servicer_config(cmdline: Optional[List[str]] = None) -> Servicer
         # Remove to use 'opts' set in another namespace.
         args.opts = None
 
-    return right_join(
+    result = right_join(
         typing_namespace(Namespace(**file), ServicerConfig),
         typing_namespace(Namespace(**envs), ServicerConfig),
         typing_namespace(Namespace(**cfgs), ServicerConfig),
         ServicerConfig(**vars(args)),
     )
+
+    return result, extra

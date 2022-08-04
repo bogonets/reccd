@@ -3,3 +3,4 @@ yarl>=1.8.1
 type-serialize[full]>=1.1.1
 grpcio>=1.47.0
 protobuf>=4.21.4
+coloredlogs>=15.0.1

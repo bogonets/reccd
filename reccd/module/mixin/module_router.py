@@ -13,7 +13,7 @@ from reccd.module.errors import (
 )
 from reccd.module.mixin._module_base import ModuleBase
 from reccd.route.dynamic_resource import DynamicResource
-from reccd.variables.plugin import NAME_ON_ROUTES
+from reccd.variables.module import NAME_ON_ROUTES
 
 RouteMethod = str
 RoutePath = str

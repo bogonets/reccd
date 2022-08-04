@@ -5,12 +5,11 @@ from reccd.module.errors import (
     ModuleAttributeNotFoundError,
 )
 from reccd.module.mixin._module_base import ModuleBase
-from reccd.variables.plugin import NAME_VERSION
+from reccd.variables.module import NAME_VERSION
 
 
 class ModuleVersion(ModuleBase):
-    @property
-    def version(self) -> str:
+    def get_version(self) -> str:
         if not self.has(NAME_VERSION):
             raise ModuleAttributeNotFoundError(self.module_name, NAME_VERSION)
 
@@ -31,3 +30,10 @@ class ModuleVersion(ModuleBase):
             )
 
         return value
+
+    @property
+    def version(self) -> str:
+        try:
+            return self.get_version()
+        except:  # noqa
+            return str()

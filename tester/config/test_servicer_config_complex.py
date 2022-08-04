@@ -8,6 +8,7 @@ from unittest import TestCase, main
 from reccd.config.env_parse import get_env, get_file_env
 from reccd.config.servicer_config import get_default_servicer_config
 from reccd.system.environ import exchange_env
+from reccd.variables.argparse import VALUE_SEPARATOR
 from reccd.variables.config import (
     CFG_SECTION,
     ENVIRONMENT_FILE_PREFIX,
@@ -15,7 +16,6 @@ from reccd.variables.config import (
     ENVIRONMENT_PREFIX,
     ENVIRONMENT_SUFFIX,
     SKIP_MODULE,
-    VALUE_SEPARATOR,
 )
 
 
@@ -56,19 +56,19 @@ class ServicerConfigComplexModuleTestCase(TestCase):
         self.assertFalse(self.config_path.exists())
 
     def test_module_attribute(self):
-        args1 = get_default_servicer_config(
+        args1, _ = get_default_servicer_config(
             ["-c", str(self.config_path), self.args_value],
         )
         self.assertEqual(self.args_value, args1.module)
 
-        args2 = get_default_servicer_config(["-c", str(self.config_path)])
+        args2, _ = get_default_servicer_config(["-c", str(self.config_path)])
         self.assertEqual(self.config_value, args2.module)
 
-        args3 = get_default_servicer_config([])
+        args3, _ = get_default_servicer_config([])
         self.assertEqual(self.env_value, args3.module)
 
         environ.pop(self.RECCD_MODULE)
-        args4 = get_default_servicer_config([])
+        args4, _ = get_default_servicer_config([])
         self.assertEqual(self.secret_value, args4.module)
 
 
@@ -107,22 +107,22 @@ class ServicerConfigComplexOptsTestCase(TestCase):
         self.assertFalse(self.config_path.exists())
 
     def test_module_attribute(self):
-        args1 = get_default_servicer_config(
+        args1, _ = get_default_servicer_config(
             ["-c", str(self.config_path), "--", SKIP_MODULE, "t7", "t8"],
         )
         self.assertIsNone(args1.module)
         self.assertListEqual(["t7", "t8"], args1.opts)
 
-        args2 = get_default_servicer_config(["-c", str(self.config_path)])
+        args2, _ = get_default_servicer_config(["-c", str(self.config_path)])
         self.assertIsNone(args2.module)
         self.assertListEqual(["t5", "t6"], args2.opts)
 
-        args3 = get_default_servicer_config([])
+        args3, _ = get_default_servicer_config([])
         self.assertIsNone(args3.module)
         self.assertListEqual(["t1", "t2"], args3.opts)
 
         environ.pop(self.RECCD_OPTS)
-        args4 = get_default_servicer_config([])
+        args4, _ = get_default_servicer_config([])
         self.assertIsNone(args4.module)
         self.assertListEqual(["t3", "t4"], args4.opts)
 

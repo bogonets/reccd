@@ -5,12 +5,11 @@ from reccd.module.errors import (
     ModuleAttributeNotFoundError,
 )
 from reccd.module.mixin._module_base import ModuleBase
-from reccd.variables.plugin import NAME_DOC
+from reccd.variables.module import NAME_DOC
 
 
 class ModuleDoc(ModuleBase):
-    @property
-    def doc(self) -> str:
+    def get_doc(self) -> str:
         if not self.has(NAME_DOC):
             raise ModuleAttributeNotFoundError(self.module_name, NAME_DOC)
 
@@ -31,3 +30,10 @@ class ModuleDoc(ModuleBase):
             )
 
         return value
+
+    @property
+    def doc(self) -> str:
+        try:
+            return self.get_doc()
+        except:  # noqa
+            return str()

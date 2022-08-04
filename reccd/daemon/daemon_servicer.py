@@ -3,13 +3,14 @@
 import sys
 from asyncio import run as asyncio_run
 from asyncio import sleep
-from typing import Awaitable, Callable, Final, List, Mapping, Optional
+from typing import Final, List, Mapping, Optional
 
 import grpc
 from grpc.aio import ServicerContext
 from type_serialize import ByteCoding
 from type_serialize.variables import COMPRESS_LEVEL_BEST
 
+from reccd.aio.connection import try_connection
 from reccd.config.servicer_config import ServicerConfig
 from reccd.daemon.daemon_client import heartbeat
 from reccd.logging.logging import reccd_logger as logger
@@ -41,8 +42,6 @@ from reccd.variables.rpc import (
 )
 
 DNS_URI_PREFIX_LEN: Final[int] = len(DNS_URI_PREFIX)
-DEFAULT_RESTART_DURATION = 1.0
-DEFAULT_RESTART_COUNT = 5
 
 
 class DaemonServicer(DaemonApiServicer):
@@ -166,8 +165,9 @@ def create_daemon_server(
         logger.debug(f"Strip unnecessary prefix: '{DNS_URI_PREFIX}'")
         address = address[DNS_URI_PREFIX_LEN:]
 
-    logger.info(f"Daemon module name: {module_name}")
-    logger.info(f"Daemon servicer address: {address}")
+    logger.info(f"Module name: {module_name}")
+    logger.info(f"Servicer address: {address}")
+    logger.info(f"Arguments: {sys.argv}")
 
     plugin = Module(module_name)
     servicer = DaemonServicer(plugin)
@@ -179,48 +179,13 @@ def create_daemon_server(
 
     if is_uds_family(address):
         assert accepted_port_number == ACCEPTED_UDS_PORT_NUMBER
-        logger.info("Daemon socket type: Unix Domain Socket")
+        logger.info("Socket type: Unix Domain Socket")
         return _AcceptInfo(servicer, server)
     else:
         assert accepted_port_number != ACCEPTED_UDS_PORT_NUMBER
-        logger.info("Daemon socket type: IP Address")
+        logger.info("Socket type: IP Address")
         logger.info(f"Accepted port number: {accepted_port_number}")
         return _AcceptInfo(servicer, server, accepted_port_number)
-
-
-async def try_connection(
-    predictor: Callable[[], Awaitable[bool]],
-    retry_delay: Optional[float] = None,
-    max_attempts: Optional[int] = None,
-    *,
-    try_cb: Callable[[int, int], None] = None,
-    retry_cb: Callable[[int, int], None] = None,
-    success_cb: Callable[[int, int], None] = None,
-    failure_cb: Callable[[int, int], None] = None,
-) -> bool:
-    retry_seconds = retry_delay if retry_delay else DEFAULT_RESTART_DURATION
-    retry_count = max_attempts if max_attempts else DEFAULT_RESTART_COUNT
-    i = 0
-    while i < retry_count:
-        try:
-            if try_cb:
-                try_cb(i, retry_count)
-            if await predictor():
-                if success_cb:
-                    success_cb(i, retry_count)
-                return True
-        except:  # noqa
-            pass
-
-        i += 1
-        if i < retry_count:
-            if retry_cb:
-                retry_cb(i, retry_count)
-            await sleep(retry_seconds)
-
-    if failure_cb:
-        failure_cb(i, retry_count)
-    return False
 
 
 async def wait_connectable(

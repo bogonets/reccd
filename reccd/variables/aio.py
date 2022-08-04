@@ -1,0 +1,4 @@
+# -*- coding: utf-8 -*-
+
+DEFAULT_RESTART_DURATION = 1.0
+DEFAULT_RESTART_COUNT = 5

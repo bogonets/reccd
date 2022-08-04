@@ -4,7 +4,7 @@ from argparse import Namespace
 from typing import Any, Type, TypeVar, Union, get_args, get_origin, get_type_hints
 
 from reccd.conversion.to_boolean import string_to_boolean
-from reccd.variables.config import VALUE_SEPARATOR
+from reccd.variables.argparse import VALUE_SEPARATOR
 
 _T = TypeVar("_T")
 AnyNamespace = TypeVar("AnyNamespace", bound=Namespace)

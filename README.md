@@ -6,6 +6,17 @@
 
 Daemon helper for the ANSWER
 
+## About
+
+A wrapper to easily adapt gRPC communication without implementing protobuf.
+
+## Usage
+
+Print help message:
+```.shell
+python -m reccd --help
+```
+
 ## License
 
 See the [LICENSE](./LICENSE) file for details. In summary,

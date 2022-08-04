@@ -9,7 +9,7 @@ from reccd.module.errors import (
     ModuleCallbackRuntimeError,
 )
 from reccd.module.mixin._module_base import ModuleBase
-from reccd.variables.plugin import NAME_ON_CLOSE, NAME_ON_OPEN
+from reccd.variables.module import NAME_ON_CLOSE, NAME_ON_OPEN
 
 
 class ModuleOpen(ModuleBase):

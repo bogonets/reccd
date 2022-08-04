@@ -5,7 +5,7 @@ from typing import List, Optional
 from unittest import TestCase, main
 
 from reccd.argparse.typing_namespace import typing_namespace
-from reccd.variables.config import VALUE_SEPARATOR
+from reccd.variables.argparse import VALUE_SEPARATOR
 
 
 class TypingNamespaceTestCase(TestCase):
