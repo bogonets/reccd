@@ -34,4 +34,4 @@ print_message "black ${ARGS[*]}"
 "$ROOT_DIR/python" -m black "${ARGS[@]}" \
     "$ROOT_DIR/setup.py" \
     "$ROOT_DIR/reccd/" \
-    "$ROOT_DIR/test/"
+    "$ROOT_DIR/tester/"

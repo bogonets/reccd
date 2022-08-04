@@ -2,7 +2,6 @@
 
 from dataclasses import dataclass
 from datetime import datetime
-from test.daemon.daemon_test_case import DaemonTestCase
 from typing import Any, Dict, List, Optional
 from unittest import main, skipIf
 
@@ -11,6 +10,7 @@ from numpy.random import randint
 
 from reccd.daemon.daemon_client import create_daemon_client
 from reccd.daemon.daemon_servicer import create_daemon_server
+from tester.unittest.module_test_case import ModuleIsolatedAsyncioTestCase
 
 DAEMON_ARRAY_PERFORMANCE_TEST_SKIP = False
 DAEMON_ARRAY_PERFORMANCE_ITERATION = 1
@@ -49,7 +49,7 @@ PERFORMANCE_TEST_BODY = _Test1(0, "aa", {"k": 100}, [1, "Y"], None, [])
 
 
 @skipIf(DAEMON_ARRAY_PERFORMANCE_TEST_SKIP, DAEMON_ARRAY_PERFORMANCE_SKIP_MESSAGE)
-class DaemonPerformanceTestCase(DaemonTestCase):
+class DaemonPerformanceTestCase(ModuleIsolatedAsyncioTestCase):
     async def _start_server(self):
         module_name = self.reccd_test_performance
         self.assertIn(module_name, self.test_module_names)

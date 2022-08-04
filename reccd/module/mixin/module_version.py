@@ -1,0 +1,33 @@
+# -*- coding: utf-8 -*-
+
+from reccd.module.errors import (
+    ModuleAttributeInvalidValueError,
+    ModuleAttributeNotFoundError,
+)
+from reccd.module.mixin._module_base import ModuleBase
+from reccd.variables.plugin import NAME_VERSION
+
+
+class ModuleVersion(ModuleBase):
+    @property
+    def version(self) -> str:
+        if not self.has(NAME_VERSION):
+            raise ModuleAttributeNotFoundError(self.module_name, NAME_VERSION)
+
+        value = self.get(NAME_VERSION)
+
+        if value is None:
+            raise ModuleAttributeInvalidValueError(
+                self.module_name,
+                NAME_VERSION,
+                "It must not be of `None`",
+            )
+
+        if not isinstance(value, str):
+            raise ModuleAttributeInvalidValueError(
+                self.module_name,
+                NAME_VERSION,
+                "The attribute must be of type `str`",
+            )
+
+        return value

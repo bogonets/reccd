@@ -6,6 +6,7 @@ from typing import Any, Dict, List, Optional, Tuple
 from numpy import ndarray
 
 __version__ = "0.0.0"
+__doc__ = "Documentation"
 
 
 class _TestException(Exception):

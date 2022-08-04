@@ -3,7 +3,7 @@
 from typing import Optional
 
 
-class PluginError(Exception):
+class ModuleError(Exception):
     def __init__(self, plugin: str, *args: str):
         super().__init__(*args)
         self.plugin = plugin
@@ -14,18 +14,18 @@ class PluginError(Exception):
 # ---------------
 
 
-class PluginAttributeError(PluginError):
+class ModuleAttributeError(ModuleError):
     def __init__(self, plugin: str, attribute: str, detail: str):
         super().__init__(plugin, f"Plugin[{plugin}.{attribute}] {detail}")
         self.attribute = attribute
 
 
-class PluginAttributeNotFoundError(PluginAttributeError):
+class ModuleAttributeNotFoundError(ModuleAttributeError):
     def __init__(self, plugin: str, attribute: str):
         super().__init__(plugin, attribute, "Attribute not found")
 
 
-class PluginAttributeInvalidValueError(PluginAttributeError):
+class ModuleAttributeInvalidValueError(ModuleAttributeError):
     def __init__(self, plugin: str, attribute: str, detail: Optional[str] = None):
         prefix = "The attribute value is invalid"
         message = f"{prefix}: {detail}" if detail else prefix
@@ -37,53 +37,53 @@ class PluginAttributeInvalidValueError(PluginAttributeError):
 # --------------
 
 
-class PluginCallbackError(PluginError):
+class ModuleCallbackError(ModuleError):
     def __init__(self, plugin: str, callback: str, detail: str):
         super().__init__(plugin, f"Plugin[{plugin}.{callback}] {detail}")
         self.callback = callback
 
 
-class PluginCallbackInvalidStateError(PluginCallbackError):
+class ModuleCallbackInvalidStateError(ModuleCallbackError):
     def __init__(self, plugin: str, callback: str, detail: Optional[str] = None):
         prefix = "Invalid state"
         message = f"{prefix}: {detail}" if detail else prefix
         super().__init__(plugin, callback, message)
 
 
-class PluginCallbackNotFoundError(PluginCallbackError):
+class ModuleCallbackNotFoundError(ModuleCallbackError):
     def __init__(self, plugin: str, callback: str):
         super().__init__(plugin, callback, "Callback not found")
 
 
-class PluginCallbackNotCoroutineError(PluginCallbackError):
+class ModuleCallbackNotCoroutineError(ModuleCallbackError):
     def __init__(self, plugin: str, callback: str):
         super().__init__(plugin, callback, "The callback must be a coroutine")
 
 
-class PluginCallbackCoroutineError(PluginCallbackError):
+class ModuleCallbackCoroutineError(ModuleCallbackError):
     def __init__(self, plugin: str, callback: str):
         super().__init__(plugin, callback, "The callback must not be a coroutine")
 
 
-class PluginCallbackRuntimeError(PluginCallbackError):
+class ModuleCallbackRuntimeError(ModuleCallbackError):
     def __init__(self, plugin: str, callback: str):
         super().__init__(plugin, callback, "A runtime error occurred in the callback")
 
 
-class PluginCallbackInvalidReturnValueError(PluginCallbackError):
+class ModuleCallbackInvalidReturnValueError(ModuleCallbackError):
     def __init__(self, plugin: str, callback: str, detail: Optional[str] = None):
         prefix = "The return value of the callback is invalid"
         message = f"{prefix}: {detail}" if detail else prefix
         super().__init__(plugin, callback, message)
 
 
-class PluginCallbackNotFoundRouteError(PluginCallbackError):
+class ModuleCallbackNotFoundRouteError(ModuleCallbackError):
     def __init__(self, plugin: str, callback: str, method: str, path: str):
         message = f"Not found route: method='{method}', path='{path}'"
         super().__init__(plugin, callback, message)
 
 
-class PluginCallbackRouteRuntimeError(PluginCallbackError):
+class ModuleCallbackRouteRuntimeError(ModuleCallbackError):
     def __init__(self, plugin: str, callback: str, method: str, path: str):
         prefix = "A runtime error occurred in the route"
         message = f"{prefix}: method='{method}', path='{path}'"

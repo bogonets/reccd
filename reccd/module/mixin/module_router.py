@@ -3,15 +3,15 @@
 from inspect import iscoroutinefunction
 from typing import Any, Dict, Iterable, List, Optional, Tuple
 
-from reccd.plugin.errors import (
-    PluginCallbackCoroutineError,
-    PluginCallbackInvalidReturnValueError,
-    PluginCallbackNotFoundError,
-    PluginCallbackNotFoundRouteError,
-    PluginCallbackRouteRuntimeError,
-    PluginCallbackRuntimeError,
+from reccd.module.errors import (
+    ModuleCallbackCoroutineError,
+    ModuleCallbackInvalidReturnValueError,
+    ModuleCallbackNotFoundError,
+    ModuleCallbackNotFoundRouteError,
+    ModuleCallbackRouteRuntimeError,
+    ModuleCallbackRuntimeError,
 )
-from reccd.plugin.mixin._plugin_base import PluginBase
+from reccd.module.mixin._module_base import ModuleBase
 from reccd.route.dynamic_resource import DynamicResource
 from reccd.variables.plugin import NAME_ON_ROUTES
 
@@ -41,9 +41,14 @@ class Route:
         return self.dynamic_resource.match(normalize_path)
 
 
-class PluginRouter(PluginBase):
+class ModuleRouter(ModuleBase):
 
-    _routes: List[Route]
+    _routes: List[Route] = list()
+
+    def __new__(cls, *args, **kwargs):
+        instance = super().__new__(cls)
+        instance._routes = list()
+        return instance
 
     @property
     def count_routes(self):
@@ -55,7 +60,7 @@ class PluginRouter(PluginBase):
 
     def _validate_routes_result_item(self, index: int, item: Any) -> None:
         if len(item) < 3:
-            raise PluginCallbackInvalidReturnValueError(
+            raise ModuleCallbackInvalidReturnValueError(
                 self.module_name,
                 NAME_ON_ROUTES,
                 f"The length of element #{index} must be greater than or equal to 3",
@@ -65,7 +70,7 @@ class PluginRouter(PluginBase):
 
         method = item[0]
         if not isinstance(method, str):
-            raise PluginCallbackInvalidReturnValueError(
+            raise ModuleCallbackInvalidReturnValueError(
                 self.module_name,
                 NAME_ON_ROUTES,
                 f"The 1st in element #{index} must be of type `str`",
@@ -73,7 +78,7 @@ class PluginRouter(PluginBase):
 
         path = item[1]
         if not isinstance(path, str):
-            raise PluginCallbackInvalidReturnValueError(
+            raise ModuleCallbackInvalidReturnValueError(
                 self.module_name,
                 NAME_ON_ROUTES,
                 f"The 2nd in element #{index} must be of type `str`",
@@ -81,7 +86,7 @@ class PluginRouter(PluginBase):
 
         route = item[2]
         if not callable(route):
-            raise PluginCallbackInvalidReturnValueError(
+            raise ModuleCallbackInvalidReturnValueError(
                 self.module_name,
                 NAME_ON_ROUTES,
                 f"The 3rd in element #{index} must be a callable",
@@ -89,7 +94,7 @@ class PluginRouter(PluginBase):
 
     def _validate_routes_result(self, result: Any) -> None:
         if result is None:
-            raise PluginCallbackInvalidReturnValueError(
+            raise ModuleCallbackInvalidReturnValueError(
                 self.module_name,
                 NAME_ON_ROUTES,
                 "It must not be of `None`",
@@ -98,7 +103,7 @@ class PluginRouter(PluginBase):
         try:
             iterable_result = iter(result)
         except TypeError:
-            raise PluginCallbackInvalidReturnValueError(
+            raise ModuleCallbackInvalidReturnValueError(
                 self.module_name,
                 NAME_ON_ROUTES,
                 "Not iterable",
@@ -110,15 +115,15 @@ class PluginRouter(PluginBase):
     def _on_routes(self) -> Iterable[RouteTuple]:
         callback = self.get(NAME_ON_ROUTES)
         if callback is None:
-            raise PluginCallbackNotFoundError(self.module_name, NAME_ON_ROUTES)
+            raise ModuleCallbackNotFoundError(self.module_name, NAME_ON_ROUTES)
 
         if iscoroutinefunction(callback):
-            raise PluginCallbackCoroutineError(self.module_name, NAME_ON_ROUTES)
+            raise ModuleCallbackCoroutineError(self.module_name, NAME_ON_ROUTES)
 
         try:
             result = callback()
         except BaseException as e:
-            raise PluginCallbackRuntimeError(self.module_name, NAME_ON_ROUTES) from e
+            raise ModuleCallbackRuntimeError(self.module_name, NAME_ON_ROUTES) from e
 
         self._validate_routes_result(result)
         return result
@@ -134,7 +139,7 @@ class PluginRouter(PluginBase):
             match_info = route.match(method, path)
             if match_info is not None:
                 return route.func, match_info
-        raise PluginCallbackNotFoundRouteError(
+        raise ModuleCallbackNotFoundRouteError(
             self.module_name,
             NAME_ON_ROUTES,
             method,
@@ -152,7 +157,7 @@ class PluginRouter(PluginBase):
                 return callback(*args, **kwargs)
 
         except BaseException as e:
-            raise PluginCallbackRouteRuntimeError(
+            raise ModuleCallbackRouteRuntimeError(
                 self.module_name,
                 NAME_ON_ROUTES,
                 method,

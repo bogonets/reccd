@@ -2,23 +2,28 @@
 
 from inspect import iscoroutinefunction
 
-from reccd.plugin.errors import (
-    PluginCallbackInvalidReturnValueError,
-    PluginCallbackInvalidStateError,
-    PluginCallbackNotCoroutineError,
-    PluginCallbackNotFoundError,
-    PluginCallbackRuntimeError,
+from reccd.module.errors import (
+    ModuleCallbackInvalidReturnValueError,
+    ModuleCallbackInvalidStateError,
+    ModuleCallbackNotCoroutineError,
+    ModuleCallbackNotFoundError,
+    ModuleCallbackRuntimeError,
 )
-from reccd.plugin.mixin._plugin_base import PluginBase
+from reccd.module.mixin._module_base import ModuleBase
 from reccd.variables.plugin import NAME_ON_REGISTER
 
 
-class PluginRegister(PluginBase):
+class ModuleRegister(ModuleBase):
 
     _registered = False
 
+    def __new__(cls, *args, **kwargs):
+        instance = super().__new__(cls, *args, **kwargs)
+        instance._registered = False
+        return instance
+
     @property
-    def opened(self) -> bool:
+    def registered(self) -> bool:
         assert isinstance(self._registered, bool)
         return self._registered
 
@@ -28,24 +33,24 @@ class PluginRegister(PluginBase):
 
     async def on_register(self, *args, **kwargs) -> int:
         if self._registered:
-            raise PluginCallbackInvalidStateError(
+            raise ModuleCallbackInvalidStateError(
                 self.module_name, NAME_ON_REGISTER, "Already registered"
             )
 
         callback = self.get(NAME_ON_REGISTER)
         if callback is None:
-            raise PluginCallbackNotFoundError(self.module_name, NAME_ON_REGISTER)
+            raise ModuleCallbackNotFoundError(self.module_name, NAME_ON_REGISTER)
 
         if not iscoroutinefunction(callback):
-            raise PluginCallbackNotCoroutineError(self.module_name, NAME_ON_REGISTER)
+            raise ModuleCallbackNotCoroutineError(self.module_name, NAME_ON_REGISTER)
 
         try:
             result = await callback(*args, **kwargs)
         except BaseException as e:
-            raise PluginCallbackRuntimeError(self.module_name, NAME_ON_REGISTER) from e
+            raise ModuleCallbackRuntimeError(self.module_name, NAME_ON_REGISTER) from e
 
         if not isinstance(result, int):
-            raise PluginCallbackInvalidReturnValueError(
+            raise ModuleCallbackInvalidReturnValueError(
                 self.module_name,
                 NAME_ON_REGISTER,
                 "It must be of type `int`",

@@ -29,4 +29,4 @@ print_message "flake8 ${ARGS[*]}"
 "$ROOT_DIR/python" -m flake8 "${ARGS[@]}" \
     "$ROOT_DIR/setup.py" \
     "$ROOT_DIR/reccd/" \
-    "$ROOT_DIR/test/"
+    "$ROOT_DIR/tester/"

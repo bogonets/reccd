@@ -14,8 +14,8 @@ from reccd.config.servicer_config import ServicerConfig
 from reccd.daemon.daemon_client import heartbeat
 from reccd.logging.logging import reccd_logger as logger
 from reccd.memory.shared_memory_validator import validate_shared_memory
+from reccd.module.module import Module
 from reccd.packet.content_parameter import call_router
-from reccd.plugin.daemon_plugin import DaemonPlugin
 from reccd.proto.daemon.daemon_api_pb2 import (
     PacketA,
     PacketQ,
@@ -46,7 +46,7 @@ DEFAULT_RESTART_COUNT = 5
 
 
 class DaemonServicer(DaemonApiServicer):
-    def __init__(self, plugin: DaemonPlugin):
+    def __init__(self, plugin: Module):
         self._plugin = plugin
         self._encoding = DEFAULT_PICKLE_ENCODING
         self._compress_level = COMPRESS_LEVEL_BEST
@@ -58,7 +58,7 @@ class DaemonServicer(DaemonApiServicer):
         return f"DaemonServicer<{self._plugin.module_name}>"
 
     @property
-    def plugin(self) -> DaemonPlugin:
+    def plugin(self) -> Module:
         return self._plugin
 
     async def open(self) -> None:
@@ -169,7 +169,7 @@ def create_daemon_server(
     logger.info(f"Daemon module name: {module_name}")
     logger.info(f"Daemon servicer address: {address}")
 
-    plugin = DaemonPlugin(module_name)
+    plugin = Module(module_name)
     servicer = DaemonServicer(plugin)
 
     server = grpc.aio.server(options=DEFAULT_GRPC_OPTIONS)

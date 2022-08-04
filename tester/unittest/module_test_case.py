@@ -1,35 +1,35 @@
 # -*- coding: utf-8 -*-
 
 import os
-from test.daemon import plugins
 from unittest import IsolatedAsyncioTestCase
 
 from reccd.package.package_utils import get_module_directory
 from reccd.system.path_context import PathContext
+from tester.unittest import modules
 
 
-class DaemonTestCase(IsolatedAsyncioTestCase):
+class ModuleIsolatedAsyncioTestCase(IsolatedAsyncioTestCase):
     def setUp(self):
-        self._plugins_dir = get_module_directory(plugins)
-        self._path_context = PathContext(self._plugins_dir, insert_operation=True)
+        self._modules_dir = get_module_directory(modules)
+        self._path_context = PathContext(self._modules_dir, insert_operation=True)
         self._path_context.open()
 
-        for plugin in self.test_module_names:
-            self.assertTrue(os.path.isdir(os.path.join(self._plugins_dir, plugin)))
+        for module in self.test_module_names:
+            self.assertTrue(os.path.isdir(os.path.join(self._modules_dir, module)))
 
     def tearDown(self):
         self._path_context.close()
 
     @property
     def plugins_dir(self) -> str:
-        return self._plugins_dir
+        return self._modules_dir
 
     def _assert_plugin_name(self, name: str) -> str:
         self.assertTrue(name)
-        plugin_dir = os.path.join(self._plugins_dir, name)
-        self.assertTrue(os.path.isdir(plugin_dir))
-        plugin_init_file = os.path.join(plugin_dir, "__init__.py")
-        self.assertTrue(os.path.isfile(plugin_init_file))
+        module_dir = os.path.join(self._modules_dir, name)
+        self.assertTrue(os.path.isdir(module_dir))
+        module_init_file = os.path.join(module_dir, "__init__.py")
+        self.assertTrue(os.path.isfile(module_init_file))
         return name
 
     @property

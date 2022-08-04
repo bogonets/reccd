@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 from dataclasses import dataclass
-from test.daemon.daemon_test_case import DaemonTestCase
 from typing import Any, Dict, List, Optional
 from unittest import main
 
@@ -11,6 +10,7 @@ from numpy.random import randint
 
 from reccd.daemon.daemon_client import create_daemon_client
 from reccd.daemon.daemon_servicer import create_daemon_server
+from tester.unittest.module_test_case import ModuleIsolatedAsyncioTestCase
 
 
 @dataclass
@@ -29,7 +29,7 @@ class _Result1:
     value2: str
 
 
-class DaemonRouterTestCase(DaemonTestCase):
+class DaemonRouterTestCase(ModuleIsolatedAsyncioTestCase):
     async def _start_server(self):
         module_name = self.reccd_test_router
         self.assertIn(module_name, self.test_module_names)

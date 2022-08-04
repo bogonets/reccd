@@ -70,4 +70,4 @@ print_message "isort ${ARGS[*]}"
 "$ROOT_DIR/python" -m isort "${ARGS[@]}" \
     "$ROOT_DIR/setup.py" \
     "$ROOT_DIR/reccd/" \
-    "$ROOT_DIR/test/"
+    "$ROOT_DIR/tester/"

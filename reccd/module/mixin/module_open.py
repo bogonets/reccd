@@ -2,19 +2,24 @@
 
 from inspect import iscoroutinefunction
 
-from reccd.plugin.errors import (
-    PluginCallbackInvalidStateError,
-    PluginCallbackNotCoroutineError,
-    PluginCallbackNotFoundError,
-    PluginCallbackRuntimeError,
+from reccd.module.errors import (
+    ModuleCallbackInvalidStateError,
+    ModuleCallbackNotCoroutineError,
+    ModuleCallbackNotFoundError,
+    ModuleCallbackRuntimeError,
 )
-from reccd.plugin.mixin._plugin_base import PluginBase
+from reccd.module.mixin._module_base import ModuleBase
 from reccd.variables.plugin import NAME_ON_CLOSE, NAME_ON_OPEN
 
 
-class PluginOpen(PluginBase):
+class ModuleOpen(ModuleBase):
 
-    _opened = False
+    _opened: bool
+
+    def __new__(cls, *args, **kwargs):
+        instance = super().__new__(cls, *args, **kwargs)
+        instance._opened = False
+        return instance
 
     @property
     def opened(self) -> bool:
@@ -31,40 +36,40 @@ class PluginOpen(PluginBase):
 
     async def on_open(self) -> None:
         if self._opened:
-            raise PluginCallbackInvalidStateError(
+            raise ModuleCallbackInvalidStateError(
                 self.module_name, NAME_ON_OPEN, "Already opened"
             )
 
         callback = self.get(NAME_ON_OPEN)
         if callback is None:
-            raise PluginCallbackNotFoundError(self.module_name, NAME_ON_OPEN)
+            raise ModuleCallbackNotFoundError(self.module_name, NAME_ON_OPEN)
 
         if not iscoroutinefunction(callback):
-            raise PluginCallbackNotCoroutineError(self.module_name, NAME_ON_OPEN)
+            raise ModuleCallbackNotCoroutineError(self.module_name, NAME_ON_OPEN)
 
         try:
             await callback()
         except BaseException as e:
-            raise PluginCallbackRuntimeError(self.module_name, NAME_ON_OPEN) from e
+            raise ModuleCallbackRuntimeError(self.module_name, NAME_ON_OPEN) from e
         else:
             self._opened = True
 
     async def on_close(self) -> None:
         if not self._opened:
-            raise PluginCallbackInvalidStateError(
+            raise ModuleCallbackInvalidStateError(
                 self.module_name, NAME_ON_CLOSE, "Not opened"
             )
 
         callback = self.get(NAME_ON_CLOSE)
         if callback is None:
-            raise PluginCallbackNotFoundError(self.module_name, NAME_ON_CLOSE)
+            raise ModuleCallbackNotFoundError(self.module_name, NAME_ON_CLOSE)
 
         if not iscoroutinefunction(callback):
-            raise PluginCallbackNotCoroutineError(self.module_name, NAME_ON_CLOSE)
+            raise ModuleCallbackNotCoroutineError(self.module_name, NAME_ON_CLOSE)
 
         try:
             await callback()
         except BaseException as e:
-            raise PluginCallbackRuntimeError(self.module_name, NAME_ON_CLOSE) from e
+            raise ModuleCallbackRuntimeError(self.module_name, NAME_ON_CLOSE) from e
         else:
             self._opened = False
