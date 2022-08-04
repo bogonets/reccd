@@ -1,8 +1,8 @@
-# answerd
+# reccd
 
-![PyPI](https://img.shields.io/pypi/v/answerd?style=flat-square)
-![PyPI - Python Version](https://img.shields.io/pypi/pyversions/answerd?style=flat-square)
-![GitHub](https://img.shields.io/github/license/bogonets/answerd?style=flat-square)
+![PyPI](https://img.shields.io/pypi/v/reccd?style=flat-square)
+![PyPI - Python Version](https://img.shields.io/pypi/pyversions/reccd?style=flat-square)
+![GitHub](https://img.shields.io/github/license/bogonets/reccd?style=flat-square)
 
 Daemon helper for the ANSWER
 
@@ -20,4 +20,4 @@ python -m reccd --help
 ## License
 
 See the [LICENSE](./LICENSE) file for details. In summary,
-**answerd** is licensed under the **MIT license**.
+**reccd** is licensed under the **MIT license**.
