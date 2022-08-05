@@ -4,7 +4,7 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 from unittest import TestCase, main
 
-from reccd.config.env_parse import get_env, get_file_env
+from reccd.parse.env_parse import get_env, get_file_env
 from reccd.system.environ import exchange_env
 from reccd.variables.config import (
     ENVIRONMENT_FILE_PREFIX,

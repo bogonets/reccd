@@ -73,7 +73,7 @@ class DaemonClient:
         address: str,
         timeout: Optional[float] = None,
         disable_shared_memory=False,
-        verbose=False,
+        verbose=0,
     ):
         self._session = uuid4().hex
         self._address = address
@@ -187,7 +187,7 @@ class DaemonClient:
 
             packer_begin = tznow()
             with packer as contents:
-                if self.verbose:
+                if self.verbose >= 1:
                     packer_seconds = (tznow() - packer_begin).total_seconds()
                     packer_elapsed = round(packer_seconds, 3)
                     logger.debug(f"Packer[sm={use_sm}]: {packer_elapsed}s")
@@ -204,7 +204,7 @@ class DaemonClient:
 
                 handshake_begin = tznow()
                 response = await self._stub.Packet(packet, **self._options)
-                if self.verbose:
+                if self.verbose >= 1:
                     handshake_seconds = (tznow() - handshake_begin).total_seconds()
                     handshake_elapsed = round(handshake_seconds, 3)
                     logger.debug(f"Handshake[sm={use_sm}]: {handshake_elapsed}s")
@@ -218,7 +218,7 @@ class DaemonClient:
                 kwargs=response.kwargs,
                 sms=sms,
             )
-            if self.verbose:
+            if self.verbose >= 1:
                 unpacker_seconds = (tznow() - unpacker_begin).total_seconds()
                 unpacker_elapsed = round(unpacker_seconds, 3)
                 logger.debug(f"Unpacker[sm={use_sm}]: {unpacker_elapsed}s")
@@ -251,7 +251,3 @@ class DaemonClient:
 
     async def patch(self, path: str, *args, **kwargs):
         return await self.request(M_PATCH, path, *args, **kwargs)
-
-
-def create_daemon_client(address: str, timeout: Optional[float] = None) -> DaemonClient:
-    return DaemonClient(address, timeout)

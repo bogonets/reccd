@@ -8,7 +8,7 @@ from unittest import main, skipIf
 from numpy import ndarray, uint8
 from numpy.random import randint
 
-from reccd.daemon.daemon_client import create_daemon_client
+from reccd.daemon.daemon_client import DaemonClient
 from reccd.daemon.daemon_servicer import create_daemon_server
 from tester.unittest.module_test_case import ModuleIsolatedAsyncioTestCase
 
@@ -59,7 +59,7 @@ class DaemonPerformanceTestCase(ModuleIsolatedAsyncioTestCase):
         self.server = accept_info.server
         self.port = accept_info.accepted_port_number
         self.address = f"localhost:{self.port}"
-        self.client = create_daemon_client(self.address)
+        self.client = DaemonClient(self.address)
 
         await self.servicer.open()
         await self.server.start()

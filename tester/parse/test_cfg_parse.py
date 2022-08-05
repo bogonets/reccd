@@ -4,7 +4,7 @@ import os
 from tempfile import NamedTemporaryFile
 from unittest import TestCase, main
 
-from reccd.config.cfg_parse import get_cfg_section_by_path, get_cfg_section_by_text
+from reccd.parse.cfg_parse import get_cfg_section_by_path, get_cfg_section_by_text
 from reccd.variables.config import CFG_SECTION
 
 TEST_CFG_CONTENT = f"""

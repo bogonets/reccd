@@ -4,7 +4,7 @@ import os
 from importlib import import_module
 from unittest import TestCase, main
 
-from reccd import app as reccd_app
+from reccd import apps as reccd_app
 from reccd.package.package_utils import (
     all_module_names,
     filter_module_names,
@@ -22,7 +22,9 @@ class PackageUtilsTestCase(TestCase):
         self.assertTrue(os.path.isdir(get_module_directory(reccd_app)))
 
     def test_list_submodule_names(self):
-        self.assertIn("cli", list_submodule_names(reccd_app))
+        modules = list_submodule_names(reccd_app)
+        modules.sort()
+        self.assertListEqual(["client", "modules", "server"], modules)
 
     def test_all_module_names(self):
         self.assertIn("pip", all_module_names())

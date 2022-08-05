@@ -11,7 +11,6 @@ from type_serialize import ByteCoding
 from type_serialize.variables import COMPRESS_LEVEL_BEST
 
 from reccd.aio.connection import try_connection
-from reccd.config.servicer_config import ServicerConfig
 from reccd.daemon.daemon_client import heartbeat
 from reccd.logging.logging import reccd_logger as logger
 from reccd.memory.shared_memory_validator import validate_shared_memory
@@ -224,13 +223,13 @@ async def wait_connectable(
     )
 
 
-async def run_daemon_server(config: ServicerConfig, wait_connect=True) -> None:
-    if not config.module:
+async def run_daemon_server(address: str, module: str, wait_connect=True) -> None:
+    if not module:
         raise ValueError("The module name is required")
 
-    logger.info(f"Start the daemon server: {config.module}")
+    logger.info(f"Start the daemon server: {module}")
 
-    accept_info = create_daemon_server(config.address, config.module)
+    accept_info = create_daemon_server(address, module)
     servicer = accept_info.servicer
     await servicer.open()
     server = accept_info.server
@@ -240,7 +239,7 @@ async def run_daemon_server(config: ServicerConfig, wait_connect=True) -> None:
 
     if wait_connect:
         if accepted_port_number is None:
-            await wait_connectable(config.address)
+            await wait_connectable(address)
         else:
             await wait_connectable(f"localhost:{accepted_port_number}")
 
@@ -253,12 +252,12 @@ async def run_daemon_server(config: ServicerConfig, wait_connect=True) -> None:
         # existing RPCs to continue within the grace period.
         await server.stop(0)
         await servicer.close()
-        logger.info(f"Daemon server done: {config.module}")
+        logger.info(f"Daemon server done: {module}")
 
 
-def run_daemon_until_complete(config: ServicerConfig) -> int:
+def run_daemon_until_complete(address: str, module: str, wait_connect=True) -> int:
     try:
-        asyncio_run(run_daemon_server(config))
+        asyncio_run(run_daemon_server(address, module, wait_connect))
         logger.info("Daemon completed successfully")
         return 0
     except KeyboardInterrupt:

@@ -52,6 +52,12 @@ class ModuleBase(metaclass=ABCMeta):
         assert self._module is not None
         return self._module.__name__
 
+    def __repr__(self) -> str:
+        return f"<ModuleBase[{self.module_name}]>"
+
+    def __str__(self) -> str:
+        return self.module_name
+
     def has(self, name: str) -> bool:
         assert self._module is not None
         return hasattr(self._module, name)
