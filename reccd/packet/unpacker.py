@@ -7,12 +7,12 @@ from numpy import ndarray
 from type_serialize import ByteCoding
 from type_serialize.byte.byte_coder import bytes_to_object
 
-from reccd.daemon.daemon_answer import DaemonAnswer
-from reccd.packet.content_helper import has_array, has_shared_memory
+from reccd.packet.content_inspector import has_array, has_shared_memory
+from reccd.packet.response import Response
 from reccd.proto.daemon.daemon_api_pb2 import Content
 
 
-class ContentUnpacker:
+class Unpacker:
 
     _coding: ByteCoding
     _encoding: str
@@ -63,10 +63,10 @@ class ContentUnpacker:
     def kwargs_to_anys(self) -> Dict[str, Any]:
         return {key: self.content_to_any(arg) for key, arg in self._kwargs.items()}
 
-    def unpack(self) -> DaemonAnswer:
+    def unpack(self) -> Response:
         args = self.args_to_anys()
         kwargs = self.kwargs_to_anys()
-        return DaemonAnswer(*args, **kwargs)
+        return Response(*args, **kwargs)
 
 
 def content_unpack(
@@ -75,8 +75,8 @@ def content_unpack(
     args: Optional[Iterable[Content]] = None,
     kwargs: Optional[Mapping[str, Content]] = None,
     sms: Optional[Mapping[str, SharedMemory]] = None,
-) -> DaemonAnswer:
-    unpacker = ContentUnpacker(
+) -> Response:
+    unpacker = Unpacker(
         coding=coding,
         encoding=encoding,
         args=args,

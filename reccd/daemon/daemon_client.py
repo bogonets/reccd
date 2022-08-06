@@ -1,24 +1,23 @@
 # -*- coding: utf-8 -*-
 
 from asyncio import TimeoutError, wait_for
-from typing import Any, Final, List, Optional, Tuple
+from pathlib import Path
+from typing import Any, Dict, Final, List, Optional, Tuple
 from uuid import uuid4
 
-import grpc
-from grpc.aio._channel import Channel  # noqa
 from type_serialize import ByteCoding
 from type_serialize.variables import COMPRESS_LEVEL_BEST
 
 from reccd.chrono.datetime import tznow
-from reccd.daemon.daemon_answer import DaemonAnswer
 from reccd.logging.logging import reccd_logger as logger
 from reccd.memory.shared_memory_queue import SharedMemoryQueue
 from reccd.memory.shared_memory_validator import (
     SharedMemoryTestInfo,
     register_shared_memory,
 )
-from reccd.packet.content_packer import ContentPacker
-from reccd.packet.content_unpacker import content_unpack
+from reccd.packet.packer import Packer
+from reccd.packet.response import Response
+from reccd.packet.unpacker import content_unpack
 from reccd.proto.daemon.daemon_api_pb2 import (
     PacketA,
     PacketQ,
@@ -29,8 +28,14 @@ from reccd.proto.daemon.daemon_api_pb2 import (
     RegisterQ,
 )
 from reccd.proto.daemon.daemon_api_pb2_grpc import DaemonApiStub
+from reccd.rpc.client import (
+    Channel,
+    ChannelCredentials,
+    insecure_channel,
+    secure_channel,
+    ssl_channel_credentials,
+)
 from reccd.variables.rpc import (
-    DEFAULT_GRPC_OPTIONS,
     DEFAULT_HEARTBEAT_TIMEOUT,
     DEFAULT_PICKLE_ENCODING,
     M_CONNECT,
@@ -50,19 +55,36 @@ from reccd.variables.rpc import (
 )
 
 
-async def heartbeat(
+async def insecure_heartbeat(
     address: str,
     delay: float = 0,
     timeout: Optional[float] = DEFAULT_HEARTBEAT_TIMEOUT,
 ) -> bool:
-    async with grpc.aio.insecure_channel(
-        address, options=DEFAULT_GRPC_OPTIONS
-    ) as channel:
+    async with insecure_channel(address) as channel:
         # grpc.channel_ready_future(channel)
         stub = DaemonApiStub(channel)
         options = dict()
         if timeout is not None:
-            options["timeout"] = timeout
+            options[OPTIONS_KEY_TIMEOUT] = timeout
+        response = await stub.Heartbeat(Pit(delay=delay), **options)
+    return response.ok
+
+
+async def secure_heartbeat(
+    address: str,
+    root_certificates_path: str,
+    delay: float = 0,
+    timeout: Optional[float] = DEFAULT_HEARTBEAT_TIMEOUT,
+) -> bool:
+    cert = Path(root_certificates_path).read_bytes()
+    credentials = ssl_channel_credentials(root_certificates=cert)
+
+    async with secure_channel(address, credentials) as channel:
+        # grpc.channel_ready_future(channel)
+        stub = DaemonApiStub(channel)
+        options = dict()
+        if timeout is not None:
+            options[OPTIONS_KEY_TIMEOUT] = timeout
         response = await stub.Heartbeat(Pit(delay=delay), **options)
     return response.ok
 
@@ -72,21 +94,24 @@ class DaemonClient:
     REGISTER_SUCCESS: Final[int] = int(RegisterCode.Success)
     REGISTER_NOT_FOUND: Final[int] = int(RegisterCode.NotFoundRegisterFunction)
 
-    _session: str
-    _channel: Optional[Channel] = None
-    _stub: Optional[DaemonApiStub] = None
-    _is_sm: Optional[bool] = None
+    _options: Dict[str, Any]
+    _channel: Optional[Channel]
+    _stub: Optional[DaemonApiStub]
+    _credentials: Optional[ChannelCredentials]
 
     def __init__(
         self,
         address: str,
         timeout: Optional[float] = None,
+        root_certificates_path: Optional[str] = None,
         disable_shared_memory=False,
         max_send_message_length=MAX_SEND_MESSAGE_LENGTH,
         max_receive_message_length=MAX_RECEIVE_MESSAGE_LENGTH,
         verbose=0,
     ):
         self._session = uuid4().hex
+        self._is_sm = False
+
         self._address = address
         self._options = dict()
         if timeout is not None:
@@ -99,6 +124,15 @@ class DaemonClient:
         self._min_sm_byte = 0
         self._max_send_message_length = max_send_message_length
         self._max_receive_message_length = max_receive_message_length
+
+        self._channel = None
+        self._stub = None
+
+        if root_certificates_path:
+            cert = Path(root_certificates_path).read_bytes()
+            self._credentials = ssl_channel_credentials(root_certificates=cert)
+        else:
+            self._credentials = None
 
         self.disable_shared_memory = disable_shared_memory
         self.verbose = verbose
@@ -115,7 +149,7 @@ class DaemonClient:
 
     @property
     def possible_shared_memory(self) -> bool:
-        return bool(self._is_sm)
+        return self._is_sm
 
     @property
     def timeout(self) -> Optional[float]:
@@ -144,11 +178,19 @@ class DaemonClient:
         self._smq.clear()
 
     async def open(self) -> None:
-        self._channel = grpc.aio.insecure_channel(
-            self._address,
-            options=self.channel_options,
-        )
+        if self._credentials:
+            self._channel = secure_channel(
+                target=self._address,
+                credentials=self._credentials,
+                options=self.channel_options,
+            )
+        else:
+            self._channel = insecure_channel(
+                target=self._address,
+                options=self.channel_options,
+            )
 
+        assert self._channel is not None
         self._stub = DaemonApiStub(self._channel)
 
         try:
@@ -196,7 +238,7 @@ class DaemonClient:
             logger.error(f"Unknown register code: {response.code}")
         return response.code
 
-    async def request(self, method: str, path: str, *args, **kwargs) -> DaemonAnswer:
+    async def request(self, method: str, path: str, *args, **kwargs) -> Response:
         assert self._stub is not None
 
         coding = self._coding
@@ -216,7 +258,7 @@ class DaemonClient:
 
         renter = self._smq.multi_rent(min_sm_size, min_sm_byte)
         with renter as sms:
-            packer = ContentPacker(
+            packer = Packer(
                 coding=coding,
                 compress_level=compress_level,
                 args=args,

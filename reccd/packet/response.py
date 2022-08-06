@@ -8,7 +8,7 @@ from type_serialize import deserialize
 _T = TypeVar("_T")
 
 
-class DaemonAnswer:
+class Response:
 
     args: List[Any]
     kwargs: Dict[str, Any]

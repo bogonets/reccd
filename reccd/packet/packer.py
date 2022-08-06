@@ -16,7 +16,7 @@ class PackedTuple(NamedTuple):
     kwargs: Dict[str, Content]
 
 
-class ContentPacker:
+class Packer:
 
     _coding: ByteCoding
     _compress_level: int

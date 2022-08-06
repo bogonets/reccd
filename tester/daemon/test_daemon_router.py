@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from typing import Any, Dict, List, Optional
 from unittest import main
 
+# noinspection PyPackageRequirements
 from grpc.aio import AioRpcError
 from numpy import ndarray, uint8
 from numpy.random import randint

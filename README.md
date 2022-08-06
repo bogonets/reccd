@@ -34,7 +34,7 @@ python -m reccd -l -d -vvv server -a 0.0.0.0:8080 template
 
 Communicates with the daemon server:
 ```.shell
-python -m reccd -l -d -vvv client -a 0.0.0.0:8080 message
+python -m reccd -l -d -vvv client -a 0.0.0.0:8080 -m post -p /echo message
 ```
 
 ## License

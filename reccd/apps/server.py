@@ -97,7 +97,7 @@ def main(args: Namespace, printer: Callable[..., None] = print) -> int:
         sys.argv += config.opts
 
     return run_daemon_until_complete(
-        address=grpc_address,
-        module=module_prefix + module_name,
+        bind_address=grpc_address,
+        module_name=module_prefix + module_name,
         wait_connect=True,
     )

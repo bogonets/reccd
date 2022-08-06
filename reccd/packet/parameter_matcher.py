@@ -24,7 +24,7 @@ from reccd.conversion.to_boolean import string_to_boolean
 from reccd.inspect.type_origin import get_type_origin
 from reccd.logging.logging import reccd_logger as logger
 from reccd.memory.shared_memory_utils import attach_shared_memory
-from reccd.packet.content_helper import has_array, has_shared_memory
+from reccd.packet.content_inspector import has_array, has_shared_memory
 from reccd.proto.daemon.daemon_api_pb2 import ArrayInfo, Content
 
 
@@ -60,7 +60,7 @@ class ResultTuple(NamedTuple):
     kwargs: Dict[str, Content]
 
 
-class ContentParameterMatcher:
+class ParameterMatcher:
 
     _args: Deque[Content]
     _kwargs: Dict[str, Content]
@@ -235,7 +235,7 @@ async def call_router(
     kwargs: Mapping[str, Content],
     sm_names: Iterable[str],
 ):
-    matcher = ContentParameterMatcher(
+    matcher = ParameterMatcher(
         func=func,
         match_info=match_info,
         coding=coding,
