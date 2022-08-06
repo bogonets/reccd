@@ -5,6 +5,12 @@ from multiprocessing.shared_memory import SharedMemory
 from typing import NamedTuple, Optional
 from uuid import uuid4
 
+from reccd.memory.shared_memory_utils import (
+    attach_shared_memory,
+    create_shared_memory,
+    destroy_shared_memory,
+)
+
 
 class SharedMemoryTestInfo(NamedTuple):
     name: str
@@ -23,7 +29,7 @@ def register_shared_memory(disable=False):
     else:
         test_sm_data = uuid4().hex
         test_sm_pass_bytes = bytes.fromhex(test_sm_data)
-        sm = SharedMemory(create=True, size=len(test_sm_pass_bytes))
+        sm = create_shared_memory(len(test_sm_pass_bytes))
         test_sm_name = sm.name
 
     try:
@@ -32,18 +38,14 @@ def register_shared_memory(disable=False):
         yield SharedMemoryTestInfo(test_sm_name, test_sm_data)
     finally:
         if sm:
-            sm.close()
-            sm.unlink()
+            destroy_shared_memory(sm)
 
 
 def validate_shared_memory(name: str, data: str) -> bool:
     if name and data:
         try:
-            sm = SharedMemory(name=name)
-            try:
+            with attach_shared_memory(name) as sm:
                 return bytes(sm.buf[:]) == bytes.fromhex(data)
-            finally:
-                sm.close()
         except:  # noqa
             pass
     return False

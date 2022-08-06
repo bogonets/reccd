@@ -6,7 +6,7 @@ from typing import Final, List, Optional
 
 from reccd.logging.logging import SEVERITIES, SEVERITY_NAME_INFO
 from reccd.variables.module import MODULE_NAME_PREFIX
-from reccd.variables.rpc import DEFAULT_DAEMON_ADDRESS
+from reccd.variables.rpc import DEFAULT_SERVER_ADDRESS
 
 CMD_CLIENT: Final[str] = "client"
 CMD_MODULES: Final[str] = "modules"
@@ -46,6 +46,12 @@ def version() -> str:
     return __version__
 
 
+def get_default_server_namespace() -> Namespace:
+    return Namespace(
+        address=DEFAULT_SERVER_ADDRESS,
+    )
+
+
 def add_server_parser(subparsers) -> None:
     # noinspection SpellCheckingInspection
     parser = subparsers.add_parser(
@@ -56,20 +62,27 @@ def add_server_parser(subparsers) -> None:
     )
     assert isinstance(parser, ArgumentParser)
 
+    default_namespace = get_default_server_namespace()
+    default_address = default_namespace.address
+    assert default_address
+
     parser.add_argument(
         "--config",
         "-c",
+        default=None,
         metavar="file",
         help="Configuration file path",
     )
     parser.add_argument(
         "--address",
         "-a",
+        default=None,
         metavar="addr",
-        help="gRPC bind address",
+        help=f"gRPC bind address (default: '{default_address}')",
     )
     parser.add_argument(
         "module",
+        default=None,
         nargs="?",
         help="Plugin module name",
     )
@@ -122,6 +135,7 @@ def add_client_parser(subparsers) -> None:
         "--timeout",
         "-t",
         default=DEFAULT_TIMEOUT,
+        type=float,
         help=f"Request timeout in seconds (default: {DEFAULT_TIMEOUT})",
     )
     parser.add_argument(
@@ -135,8 +149,8 @@ def add_client_parser(subparsers) -> None:
         "--address",
         "-a",
         metavar="addr",
-        default=DEFAULT_DAEMON_ADDRESS,
-        help=f"gRPC host address (default: '{DEFAULT_DAEMON_ADDRESS}')",
+        default=DEFAULT_SERVER_ADDRESS,
+        help=f"gRPC host address (default: '{DEFAULT_SERVER_ADDRESS}')",
     )
     parser.add_argument(
         "--method",

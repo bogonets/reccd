@@ -2,17 +2,13 @@
 
 from argparse import Namespace
 from asyncio import run as asyncio_run
-from typing import Callable, Final
+from typing import Callable
 
 from reccd.arguments import KV_SEPARATOR
 from reccd.daemon.daemon_client import DaemonClient
 from reccd.logging.logging import reccd_logger as logger
-
-DEFAULT_HEARTBEAT_DELAY: Final[float] = 0.0
-
-EXIT_TRUE: Final[int] = 0
-EXIT_FALSE: Final[int] = 1
-EXIT_EXCEPTION: Final[int] = 2
+from reccd.variables.rpc import DEFAULT_HEARTBEAT_DELAY
+from reccd.variables.system import EXIT_EXCEPTION, EXIT_FALSE, EXIT_TRUE
 
 
 async def async_main(args: Namespace, printer: Callable[..., None] = print) -> int:

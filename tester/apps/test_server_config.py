@@ -4,20 +4,20 @@ from argparse import Namespace
 from unittest import TestCase, main
 
 from reccd.apps.server import get_server_config
-from reccd.variables.rpc import DEFAULT_DAEMON_ADDRESS
+from reccd.variables.rpc import DEFAULT_SERVER_ADDRESS
 
 
 class ServerConfigTestCase(TestCase):
     def test_get_server_config_01(self):
         args = get_server_config(Namespace())
-        self.assertEqual(DEFAULT_DAEMON_ADDRESS, args.address)
+        self.assertEqual(DEFAULT_SERVER_ADDRESS, args.address)
         self.assertIsNone(args.module)
         self.assertIsNone(args.opts)
 
     def test_get_server_config_02(self):
         args = get_server_config(Namespace(module="module1", opts=["a", "b"]))
         self.assertEqual("module1", args.module)
-        self.assertEqual(DEFAULT_DAEMON_ADDRESS, args.address)
+        self.assertEqual(DEFAULT_SERVER_ADDRESS, args.address)
         self.assertListEqual(["a", "b"], args.opts)
 
     def test_get_server_config_03(self):

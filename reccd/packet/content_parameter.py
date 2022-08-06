@@ -2,7 +2,6 @@
 
 from collections import deque
 from inspect import iscoroutinefunction, signature
-from multiprocessing.shared_memory import SharedMemory
 from typing import (
     Any,
     Deque,
@@ -24,6 +23,7 @@ from type_serialize.driver.numpy import ndarray_to_bytes
 from reccd.conversion.to_boolean import string_to_boolean
 from reccd.inspect.type_origin import get_type_origin
 from reccd.logging.logging import reccd_logger as logger
+from reccd.memory.shared_memory_utils import attach_shared_memory
 from reccd.packet.content_helper import has_array, has_shared_memory
 from reccd.proto.daemon.daemon_api_pb2 import ArrayInfo, Content
 
@@ -157,12 +157,9 @@ class ContentParameterMatcher:
 
     def _content_to_any(self, content: Content, cls: Optional[Any] = None) -> Any:
         if has_shared_memory(content):
-            sm = SharedMemory(name=content.sm_name)
-            try:
+            with attach_shared_memory(content.sm_name) as sm:
                 size = content.size
                 data = bytes(sm.buf[:size])
-            finally:
-                sm.close()
         else:
             data = content.data
 
@@ -183,11 +180,8 @@ class ContentParameterMatcher:
         if self._sm_names and buffer:
             data = bytes()
             sm_name = self._sm_names.popleft()
-            sm = SharedMemory(name=sm_name)
-            try:
+            with attach_shared_memory(sm_name) as sm:
                 sm.buf[:size] = buffer
-            finally:
-                sm.close()
         else:
             data = buffer
             sm_name = None
@@ -201,11 +195,8 @@ class ContentParameterMatcher:
         if self._sm_names and buffer:
             data = bytes()
             sm_name = self._sm_names.popleft()
-            sm = SharedMemory(name=sm_name)
-            try:
+            with attach_shared_memory(sm_name) as sm:
                 sm.buf[:size] = buffer
-            finally:
-                sm.close()
         else:
             data = buffer
             sm_name = None

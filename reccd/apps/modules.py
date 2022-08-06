@@ -10,13 +10,14 @@ from reccd.module.module import Module, find_and_strip_module_prefix
 
 def printable_module_information(
     module_names: List[str],
+    module_prefix: str,
     with_version=False,
     with_doc=False,
 ) -> str:
     buffer = StringIO()
 
     for module_name in module_names:
-        module = Module(module_name, isolate=True)
+        module = Module(module_prefix + module_name, isolate=True)
         version = module.version
         doc = module.doc
 
@@ -40,8 +41,12 @@ def main(args: Namespace, printer: Callable[..., None] = print) -> int:
     with_version = verbose >= 1
     with_doc = verbose >= 2
 
-    module_full_names = list(map(lambda x: module_prefix + x, module_names))
-    message = printable_module_information(module_full_names, with_version, with_doc)
+    message = printable_module_information(
+        module_names,
+        module_prefix,
+        with_version,
+        with_doc,
+    )
 
     logger.debug(f"List of modules (with_version={with_version},with_doc={with_doc})")
     if message:
