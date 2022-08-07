@@ -18,11 +18,11 @@ class _AttachSharedMemoryContext:
 
     def __enter__(self) -> SharedMemory:
         self.sm = SharedMemory(name=self.name)
-        _unregister_shared_memory_tracker(self.sm)
         return self.sm
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.sm.close()
+        _unregister_shared_memory_tracker(self.sm)
 
 
 def attach_shared_memory(name: str):
